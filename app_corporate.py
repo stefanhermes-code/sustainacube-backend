@@ -13,45 +13,9 @@ import time
 from datetime import datetime
 from PIL import Image
 from typing import Dict
-import requests
 
 # Load environment variables
 load_dotenv()
-
-# API Configuration
-API_URL = "https://sustainacube-backend.onrender.com"
-
-def check_api_availability():
-    """Check if the API is available"""
-    try:
-        response = requests.get(f"{API_URL}/health", timeout=5)
-        return response.status_code == 200
-    except Exception as e:
-        print(f"API check failed: {e}")  # Debug print
-        return False
-
-def authenticate_user_via_api(email: str, password: str):
-    """Authenticate user via API"""
-    try:
-        response = requests.post(f"{API_URL}/auth", 
-                               json={"email": email, "password": password}, 
-                               timeout=10)
-        if response.status_code == 200:
-            return {"success": True, "user": response.json()}
-        else:
-            return {"success": False, "message": "Invalid credentials"}
-    except Exception as e:
-        return {"success": False, "message": f"API error: {str(e)}"}
-
-def log_user_activity_via_api(email: str, question_count: int = 1, cost: float = 0.0):
-    """Log user activity via API"""
-    try:
-        response = requests.post(f"{API_URL}/log_usage", 
-                               json={"email": email, "question_count": question_count, "cost_estimate": cost},
-                               timeout=5)
-        return response.status_code == 200
-    except:
-        return False
 
 class SustainaCubeMinimal:
     def __init__(self):
@@ -537,72 +501,30 @@ def check_password():
 
         if st.button("Login"):
             if email and password:
-                # Try API authentication first
-                api_available = check_api_availability()
-                if api_available:
-                    api_result = authenticate_user_via_api(email, password)
-                    if api_result["success"]:
-                        st.session_state.authenticated = True
-                        st.session_state.current_user = email
-                        st.success("✅ Logged in via API")
-                        st.rerun()
+                user_id = email.lower().strip()
+                if user_id in users:
+                    user = users[user_id]
+                    if user.get('status', 'Active').lower() != 'active':
+                        st.error("Your account is not active. Contact administrator.")
+                    elif user.get('password') == password:
+                        try:
+                            valid_until_str = user.get('valid_until', '')
+                            if valid_until_str:
+                                valid_until = datetime.strptime(valid_until_str, '%d/%m/%Y').date()
+                                if valid_until < datetime.now().date():
+                                    st.error("Your account has expired. Contact administrator.")
+                                    return False
+                            st.session_state.authenticated = True
+                            st.session_state.current_user = user['email']
+                            st.rerun()
+                        except Exception:
+                            st.session_state.authenticated = True
+                            st.session_state.current_user = user['email']
+                            st.rerun()
                     else:
-                        st.error(f"API Authentication failed: {api_result['message']}")
-                        # Fall back to CSV authentication
-                        user_id = email.lower().strip()
-                        if user_id in users:
-                            user = users[user_id]
-                            if user.get('status', 'Active').lower() != 'active':
-                                st.error("Your account is not active. Contact administrator.")
-                            elif user.get('password') == password:
-                                try:
-                                    valid_until_str = user.get('valid_until', '')
-                                    if valid_until_str:
-                                        valid_until = datetime.strptime(valid_until_str, '%d/%m/%Y').date()
-                                        if valid_until < datetime.now().date():
-                                            st.error("Your account has expired. Contact administrator.")
-                                            return False
-                                    st.session_state.authenticated = True
-                                    st.session_state.current_user = user['email']
-                                    st.success("✅ Logged in via CSV (API fallback)")
-                                    st.rerun()
-                                except Exception:
-                                    st.session_state.authenticated = True
-                                    st.session_state.current_user = user['email']
-                                    st.success("✅ Logged in via CSV (API fallback)")
-                                    st.rerun()
-                            else:
-                                st.error("Incorrect password. Please try again.")
-                        else:
-                            st.error("User not found. Please contact your administrator.")
+                        st.error("Incorrect password. Please try again.")
                 else:
-                    # API not available, use CSV authentication
-                    user_id = email.lower().strip()
-                    if user_id in users:
-                        user = users[user_id]
-                        if user.get('status', 'Active').lower() != 'active':
-                            st.error("Your account is not active. Contact administrator.")
-                        elif user.get('password') == password:
-                            try:
-                                valid_until_str = user.get('valid_until', '')
-                                if valid_until_str:
-                                    valid_until = datetime.strptime(valid_until_str, '%d/%m/%Y').date()
-                                    if valid_until < datetime.now().date():
-                                        st.error("Your account has expired. Contact administrator.")
-                                        return False
-                                st.session_state.authenticated = True
-                                st.session_state.current_user = user['email']
-                                st.success("✅ Logged in via CSV (API unavailable)")
-                                st.rerun()
-                            except Exception:
-                                st.session_state.authenticated = True
-                                st.session_state.current_user = user['email']
-                                st.success("✅ Logged in via CSV (API unavailable)")
-                                st.rerun()
-                        else:
-                            st.error("Incorrect password. Please try again.")
-                    else:
-                        st.error("User not found. Please contact your administrator.")
+                    st.error("User not found. Please contact your administrator.")
             else:
                 st.error("Please enter both email and password.")
         return False
@@ -633,16 +555,6 @@ def main():
     # Top bar: right-aligned logout button with user info
     top_left, top_right = st.columns([6, 1])
     with top_right:
-        # API Status indicator
-        api_available = check_api_availability()
-        if api_available:
-            st.success("🟢 API Connected")
-        else:
-            st.warning("🟡 API Offline")
-        
-        # Debug info
-        st.caption(f"API: {API_URL}")
-        
         # User info above logout button
         if 'current_user' in st.session_state and st.session_state.current_user:
             current_time = datetime.now().strftime('%d/%m/%Y %H:%M')
@@ -704,9 +616,7 @@ def main():
             with st.spinner("Searching knowledge base and generating answer..."):
                 answer, sources = st.session_state.rag_system.answer_question(q)
             
-            # Log usage via API if available
-            if 'current_user' in st.session_state and st.session_state.current_user:
-                log_user_activity_via_api(st.session_state.current_user, question_count=1, cost=0.0)
+            # Usage tracking removed - using CSV authentication only
             
             st.markdown("### 📋 Answer")
             st.markdown(answer)
