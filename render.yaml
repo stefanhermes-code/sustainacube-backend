@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: sustainacube-backend
+    buildCommand: pip install -r requirements_backend.txt
+    startCommand: python main.py
+    env: python
+    plan: free
