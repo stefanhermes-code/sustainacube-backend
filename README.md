@@ -1,113 +1,90 @@
-# 🌱 SustainaCube RAG System
+# 🌱 SustainaCube Streamlit Apps
 
-A RAG-based ExpertCenter for sustainability research, following the PU ExpertCenter pattern.
+Streamlit-based applications for sustainability research and analysis.
 
 ## 📁 Directory Structure
 
 ```
-SustainaCube_RAG/
-├── sustainacube_rag.py          # Main RAG application
-├── ms_forms_integration.py      # MS Forms webhook handler
+SustainaCube_Development/
+├── app_corporate.py             # Corporate Streamlit application
+├── app.py                       # Internal Streamlit application
+├── Corporate Users.csv          # User authentication data
 ├── requirements.txt             # Python dependencies
-├── run_sustainacube.bat         # Easy startup script
-├── env_example.txt              # Environment variables template
+├── main.py                      # FastAPI backend (optional)
+├── users.csv                    # API user data (optional)
 └── README.md                    # This file
-└── USER_MANUAL.md               # Full user manual
 ```
 
 ## 🚀 Quick Start
 
-### 1. Set up Environment
-1. Copy `env_example.txt` to `.env`
-2. Add your OpenAI API key to the `.env` file:
-   ```
-   OPENAI_API_KEY=your_openai_api_key_here
-   ```
-
-### 2. Install Dependencies
+### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Run the System
-Double-click `run_sustainacube.bat` or run:
+### 2. Run Corporate App
 ```bash
-streamlit run sustainacube_rag.py
+streamlit run app_corporate.py
 ```
 
-### 4. Process Documents
-1. Open the web interface (http://localhost:8501)
-2. Click "🔄 Process Documents" in the sidebar
-3. Wait for all 602 documents to be processed
-
-## 🔄 Workflow (Following PU ExpertCenter Pattern)
-
-1. **MS Forms** → User submits sustainability questions
-2. **SustainaCube** → Processes question through RAG system
-3. **Outlook** → Sends formatted email response with sources
+### 3. Run Internal App
+```bash
+streamlit run app.py
+```
 
 ## 💡 Features
 
-- **Document Processing**: Handles PDFs, Word docs, text files
-- **Vector Search**: Semantic search through 602+ documents
-- **AI Answers**: GPT-4 powered responses with citations
-- **MS Forms Integration**: Webhook endpoint for form submissions
-- **Email Responses**: Professional HTML email formatting
-- **Source Citations**: Shows which documents were used
+- **User Authentication**: Email/password login system
+- **Document Analysis**: PDF and document processing
+- **AI-Powered Responses**: OpenAI integration for sustainability insights
+- **Usage Tracking**: Monitor user activity and costs
+- **API Integration**: Optional FastAPI backend for data management
 
 ## 🔧 Configuration
 
-### MS Forms Integration
-To set up MS Forms integration:
-1. Create a webhook in MS Forms
-2. Point it to: `http://your-server:5000/webhook/sustainacube`
-3. Configure email settings in `.env`
-
-### Email Configuration
-Add to your `.env` file:
+### Environment Variables
+Create a `.env` file with:
 ```
-OUTLOOK_EMAIL=your_email@domain.com
-OUTLOOK_PASSWORD=your_app_password
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-## 📊 Cost Estimate
+### User Management
+- **Corporate Users**: Edit `Corporate Users.csv` to add/remove users
+- **API Users**: Use `create_users_csv.py` to generate hashed passwords
 
-- **OpenAI API**: ~$5-10/month (based on usage)
-- **Everything else**: Free (local processing)
+## 📊 Applications
 
-## 🧪 Testing
+### Corporate App (`app_corporate.py`)
+- Corporate user interface
+- Enhanced authentication
+- Usage analytics
+- Professional reporting
 
-Try these sample questions:
-- "What are the CO2 savings from PU foam recycling in Thailand?"
-- "Compare EPR frameworks across different countries"
-- "What are the latest chemical recycling methods?"
-- "How much CO2 can be saved through mattress recycling?"
+### Internal App (`app.py`)
+- Internal team interface
+- Advanced document processing
+- Research tools
+- Collaboration features
 
-## 📚 Document Types Supported
+## 🔄 API Integration (Optional)
 
-- PDF files (.pdf)
-- Word documents (.docx)
-- Text files (.txt)
-
-## 🔍 How It Works
-
-1. **Document Processing**: Extracts text from all supported files
-2. **Chunking**: Splits text into manageable chunks for better retrieval
-3. **Embedding**: Creates vector embeddings using OpenAI
-4. **Storage**: Stores embeddings in ChromaDB vector database
-5. **Retrieval**: Finds relevant chunks for user questions
-6. **Generation**: Uses GPT-4 to generate comprehensive answers
-7. **Response**: Formats and delivers answers via email
+The FastAPI backend (`main.py`) provides:
+- User authentication endpoints
+- Usage logging and analytics
+- Data management APIs
+- Health monitoring
 
 ## 🛠️ Troubleshooting
 
 ### Common Issues
-- **"No documents found"**: Run "Process Documents" first
-- **API errors**: Check your OpenAI API key in `.env`
-- **Email not sending**: Verify Outlook credentials in `.env`
+- **Authentication errors**: Check user credentials in CSV files
+- **API errors**: Verify OpenAI API key in environment variables
+- **Import errors**: Ensure all dependencies are installed
 
-### Logs
-Check the console output for detailed error messages and processing status.
+### Deployment
+- **Streamlit Cloud**: Upload files and configure secrets
+- **Local Development**: Use `streamlit run` commands
+- **API Backend**: Deploy separately to cloud platforms
 
 ## 📞 Support
 
