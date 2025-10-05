@@ -809,14 +809,14 @@ def main():
                 data=html_content,
                 file_name="sustainacube_answer.html",
                 mime="text/html",
-                key="download_html"
+                key=f"download_html_{len(st.session_state.get('query_history', []))}"
             )
             st.download_button(
                 label="Copy Answer (Text)",
                 data=answer,
                 file_name="sustainacube_answer.txt",
                 mime="text/plain",
-                key="download_text"
+                key=f"download_text_{len(st.session_state.get('query_history', []))}"
             )
             # Sources section removed for corporate version
 
