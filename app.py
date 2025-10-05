@@ -891,7 +891,15 @@ def main():
 
         def run_query(q: str):
             with st.spinner("Searching knowledge base and generating answer..."):
+                # Temporarily override assistant_id based on toggle
+                original_assistant_id = st.session_state.rag_system.assistant_id
+                if not use_assistant:
+                    st.session_state.rag_system.assistant_id = None
+                
                 answer, sources = st.session_state.rag_system.answer_question(q)
+                
+                # Restore original assistant_id
+                st.session_state.rag_system.assistant_id = original_assistant_id
 
             st.markdown("### 📋 Answer")
             st.markdown(answer)
@@ -971,6 +979,17 @@ def main():
                 mime="text/plain",
                 key="download_text"
             )
+
+        # Assistant toggle
+        st.markdown("---")
+        st.markdown("### 🤖 Assistant")
+        use_assistant = st.checkbox("Use OpenAI Assistant (Vector Store)", value=bool(st.session_state.rag_system.assistant_id))
+        
+        if use_assistant:
+            if not st.session_state.rag_system.assistant_id:
+                st.warning("⚠️ OpenAI Assistant ID not configured. Using local retrieval instead.")
+        else:
+            st.info("ℹ️ Using local document retrieval")
 
         if st.button("🔍 Get Answer", type="primary"):
             if question.strip():
