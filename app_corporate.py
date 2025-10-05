@@ -26,7 +26,8 @@ def check_api_availability():
     try:
         response = requests.get(f"{API_URL}/health", timeout=5)
         return response.status_code == 200
-    except:
+    except Exception as e:
+        print(f"API check failed: {e}")  # Debug print
         return False
 
 def authenticate_user_via_api(email: str, password: str):
@@ -638,6 +639,9 @@ def main():
             st.success("🟢 API Connected")
         else:
             st.warning("🟡 API Offline")
+        
+        # Debug info
+        st.caption(f"API: {API_URL}")
         
         # User info above logout button
         if 'current_user' in st.session_state and st.session_state.current_user:
